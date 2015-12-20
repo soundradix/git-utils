@@ -72,7 +72,6 @@ def iter_submodules(repo):
 def get_submodule_hash(submodule_path):
     (parentdir, submodule) = os.path.split(submodule_path)
     for i_submodule, i_hash in iter_submodules(parentdir):
-        print(i_submodule, submodule)
         if i_submodule == submodule:
             return i_hash
     raise IndexError(submodule_path)
