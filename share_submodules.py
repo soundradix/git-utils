@@ -104,6 +104,10 @@ def get_git_version():
     [version_num_str] = [x for x in version_str.split() if '.' in x][:1]
     return [int(x) for x in version_num_str.split('.')]
 
+if len(sys.argv) != 3:
+    print(__doc__)
+    sys.exit(1)
+
 [src_repo, dest_submodule_path] = [
     os.path.abspath(x.rstrip('/'))
     for x in sys.argv[1:]]
