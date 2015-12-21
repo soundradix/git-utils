@@ -76,6 +76,16 @@ def get_submodule_hash(submodule_path):
             return i_hash
     raise IndexError(submodule_path)
 
+def create_gitdir_subdir_symlinks(worktree):
+    '''
+    Add symlinks to objects and refs dirs from the work tree's commondir.
+    This correctly fools Atom display this worktree as a submodule.
+    '''
+    gitdir = get_gitdir(worktree)
+    commondir = open(os.path.join(gitdir, 'commondir'), 'rt').read().strip()
+    for x in ['objects', 'refs']:
+        os.symlink(os.path.join(commondir, x), os.path.join(gitdir, x))
+
 def create_worktree_for_submodule(src_repo, dest_submodule_path, worktree_name):
     commit_hash = remove_prefix(get_submodule_hash(dest_submodule_path), '-')
 
@@ -87,6 +97,8 @@ def create_worktree_for_submodule(src_repo, dest_submodule_path, worktree_name):
 
     os.chdir(src_repo)
     subprocess.check_call(['git', 'branch', '-d', worktree_name])
+
+    create_gitdir_subdir_symlinks(dest_submodule_path)
 
 def create_worktrees_for_submodules(src_repo, dest_submodule_path, worktree_name):
     print('creating worktree for %s\n' % src_repo)
