@@ -78,5 +78,6 @@ while todos:
                 continue
         with ChangeDir(sub['local']):
             cur_dir = os.getcwd()
-            submodule_sources[sub['remote']] = os.getcwd()
+            if sub['remote'] not in submodule_sources:
+                submodule_sources[sub['remote']] = os.getcwd()
             todos.append(cur_dir)
