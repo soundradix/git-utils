@@ -29,13 +29,19 @@ import sys
 def command_output(cmd):
     return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE).stdout.read().decode('utf-8')
 
+def strip_end(text, suffix):
+    # From http://stackoverflow.com/a/1038999/40916
+    if not text.endswith(suffix):
+        return text
+    return text[:len(text)-len(suffix)]
+
 def list_submodules():
     for line in command_output('git config --file .gitmodules --get-regexp submodule\..*\.url').splitlines():
         [key, value] = line.split(' ', 1)
         name = key.split('.', 1)[1].rsplit('.', 1)[0]
         yield {
             'local': command_output('git config --file .gitmodules submodule.%s.path' % (name, )).strip(),
-            'remote': value,
+            'remote': strip_end(value, '.git'),
             }
 
 class ChangeDir:
