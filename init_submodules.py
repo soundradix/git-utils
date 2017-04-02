@@ -3,6 +3,7 @@
 
 '''
 init_submodules.py [paths]
+init_submodules.py <args-for-submodule-update> -- paths
 
 A tool to init a git repo of submodules with shared submodules.
 For example a repo with structure:
@@ -36,6 +37,8 @@ Note that the order is important and modules in paths provided first will not re
 modules from the paths after them.
 This is useful as some repos could be temporary and one would want the temporary repo's
 submodule to reference the permanent repo's and not the other way.
+
+One may provide flags such as "--depth 1" for the submodule updates.
 '''
 
 import collections
@@ -61,16 +64,28 @@ def list_submodules():
             'remote': strip_end(value, '.git'),
             }
 
+args = sys.argv[1:]
+try:
+    sep_idx = args.index('--')
+    update_flags = args[:sep_idx]
+    paths = [os.path.abspath(x) for x in args[sep_idx+1:]]
+except ValueError:
+    update_flags = []
+    if args:
+        paths = [os.path.abspath(x) for x in args]
+    else:
+        paths = [os.getcwd()]
+
 submodule_sources = {}
 
 def init_submodule(sub):
     source = submodule_sources.get(sub['remote'])
     if source:
         print('Using source %s for submodule %s' % (source, sub['local']))
-        subprocess.check_call(['git', 'submodule', 'update', '--reference', source, '--init', sub['local']])
+        subprocess.check_call(['git', 'submodule', 'update', '--reference', source, '--init'] + update_flags + [sub['local']])
     else:
         print('Initializing new submodule %s' % (sub['local'], ))
-        subprocess.check_call(['git', 'submodule', 'update', '--init', sub['local']])
+        subprocess.check_call(['git', 'submodule', 'update', '--init'] + update_flags + [sub['local']])
     abs_dir = os.path.abspath(sub['local'])
     if sub['remote'] not in submodule_sources:
         submodule_sources[sub['remote']] = abs_dir
@@ -98,11 +113,6 @@ def go(path):
                     sys.exit(1)
             else:
                 todos.append(os.path.abspath(sub['local']))
-
-if len(sys.argv) < 2:
-    paths = [os.getcwd()]
-else:
-    paths = [os.path.abspath(x) for x in sys.argv[1:]]
 
 for path in paths:
     go(path)
