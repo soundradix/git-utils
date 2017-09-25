@@ -24,7 +24,8 @@ for ((filename, stats), (filename_w, stats_w)) in zip(diffs(), diffs('-w')):
     if stats <= stats_w:
         continue
     def check_success(label):
-        new_stats = int(command_output('git diff --stat %s' % filename).split(' | ', 1)[1].split()[0])
+        new_stats_txt = command_output('git diff --stat %s' % filename).strip()
+        new_stats = int(new_stats_txt.split(' | ', 1)[1].split()[0]) if new_stats_txt else 0
         if new_stats >= stats:
             return False
         print('%s: Changed to %s line endings, reducing diff by %d lines.' % (filename, label, stats-new_stats))
