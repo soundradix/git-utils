@@ -15,7 +15,7 @@ def command_output(cmd):
     return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE).stdout.read().decode('utf-8')
 
 def diffs(options = ''):
-    for line in command_output('git diff --stat' + (' ' if options else '') + options).splitlines()[:-1]:
+    for line in command_output('git diff HEAD --stat' + (' ' if options else '') + options).splitlines()[:-1]:
         filename, stats = line.split(' | ', 1)
         yield filename.strip(), int(stats.split()[0])
 
@@ -24,7 +24,7 @@ for ((filename, stats), (filename_w, stats_w)) in zip(diffs(), diffs('-w')):
     if stats <= stats_w:
         continue
     def check_success(label):
-        new_stats_txt = command_output('git diff --stat %s' % filename).strip()
+        new_stats_txt = command_output('git diff HEAD --stat %s' % filename).strip()
         new_stats = int(new_stats_txt.split(' | ', 1)[1].split()[0]) if new_stats_txt else 0
         if new_stats >= stats:
             return False
