@@ -14,20 +14,23 @@ import subprocess
 def command_output(cmd):
     return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE).stdout.read().decode('utf-8')
 
-diff_stat_cmd = 'git diff HEAD --stat=11000,10000'
+diff_stat_cmd = 'git diff HEAD --numstat'
+
+def parse_diffs_line(line):
+    (added, removed, filename) = line.split(None, 2)
+    return filename.strip(), int(added) + int(removed)
 
 def diffs(options = ''):
-    for line in command_output(diff_stat_cmd + (' ' if options else '') + options).splitlines()[:-1]:
-        filename, stats = line.split(' | ', 1)
-        yield filename.strip(), int(stats.split()[0])
+    for line in command_output(diff_stat_cmd + (' ' if options else '') + options).splitlines():
+        yield parse_diffs_line(line)
 
 for ((filename, stats), (filename_w, stats_w)) in zip(diffs(), diffs('-w')):
     assert filename == filename_w
     if stats <= stats_w:
         continue
     def check_success(label):
-        new_stats_txt = command_output(diff_stat_cmd + ' ' + filename).strip()
-        new_stats = int(new_stats_txt.split(' | ', 1)[1].split()[0]) if new_stats_txt else 0
+        new_stats_txt = command_output(diff_stat_cmd + ' ' + filename)
+        new_stats = parse_diffs_line(new_stats_txt)[1] if new_stats_txt.strip() else 0
         if new_stats >= stats:
             return False
         print('%s: Changed to %s line endings, reducing diff by %d lines.' % (filename, label, stats-new_stats))
