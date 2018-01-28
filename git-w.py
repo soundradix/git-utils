@@ -14,7 +14,7 @@ import subprocess
 def command_output(cmd):
     return subprocess.Popen(cmd.split(), stdout=subprocess.PIPE).stdout.read().decode('utf-8')
 
-diff_stat_cmd = 'git diff HEAD --stat'
+diff_stat_cmd = 'git diff HEAD --stat=11000,10000'
 
 def diffs(options = ''):
     for line in command_output(diff_stat_cmd + (' ' if options else '') + options).splitlines()[:-1]:
