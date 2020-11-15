@@ -24,9 +24,10 @@ def diffs(options = ''):
     for line in command_output(diff_stat_cmd + (' ' if options else '') + options).splitlines():
         yield parse_diffs_line(line)
 
-for ((filename, stats), (filename_w, stats_w)) in zip(diffs(), diffs('-w')):
-    assert filename == filename_w
-    if stats <= stats_w:
+diffs_w = dict(diffs('-w'))
+
+for (filename, stats) in diffs():
+    if stats <= diffs_w.get(filename, 0):
         continue
     def check_success(label):
         new_stats_txt = command_output(diff_stat_cmd + ' ' + filename)
